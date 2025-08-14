@@ -36,8 +36,30 @@ function placeMarker(location, AdvancedMarkerElement) {
     marker = new AdvancedMarkerElement({ position: location, map: map });
 }
 
-// --- Multi-Step Form Logic ---
+// --- App Logic ---
 document.addEventListener('DOMContentLoaded', () => {
+    // --- Theme Switcher Logic ---
+    const themeSwitcherBtn = document.getElementById('theme-switcher');
+    const themes = ['theme-rainbow', 'theme-dark-mono'];
+    let currentTheme = localStorage.getItem('formTheme') || themes[0];
+
+    const applyTheme = (theme) => {
+        document.body.className = theme;
+        localStorage.setItem('formTheme', theme);
+    };
+
+    themeSwitcherBtn.addEventListener('click', () => {
+        const currentIndex = themes.indexOf(currentTheme);
+        const nextIndex = (currentIndex + 1) % themes.length;
+        currentTheme = themes[nextIndex];
+        applyTheme(currentTheme);
+    });
+
+    // Apply saved theme on initial load
+    applyTheme(currentTheme);
+
+
+    // --- Multi-Step Form Logic ---
     const intakeForm = document.getElementById('intake-form');
     const prevBtn = document.getElementById('prev-btn');
     const nextBtn = document.getElementById('next-btn');
@@ -49,17 +71,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const titles = ["Client Information", "Project Location", "Services & Plans", "Final Details"];
 
     const updateFormSteps = () => {
-        // Update Title and Progress Bar
         formTitle.textContent = titles[currentStep];
         const progress = `${((currentStep + 1) / formSteps.length) * 100}%`;
         progressBar.style.width = progress;
-
-        // Show/Hide Steps
         formSteps.forEach((step, index) => {
             step.classList.toggle('active', index === currentStep);
         });
-
-        // Update Button States
         prevBtn.style.display = currentStep === 0 ? 'none' : 'inline-block';
         nextBtn.textContent = currentStep === formSteps.length - 1 ? 'Submit' : 'Next';
     };
@@ -70,10 +87,10 @@ document.addEventListener('DOMContentLoaded', () => {
         let isValid = true;
         inputs.forEach(input => {
             if (!input.value.trim()) {
-                input.style.borderColor = 'rgba(239, 68, 68, 0.7)'; // Red border for invalid
+                input.style.borderColor = 'rgba(239, 68, 68, 0.7)';
                 isValid = false;
             } else {
-                input.style.borderColor = ''; // Reset border
+                input.style.borderColor = '';
             }
         });
         return isValid;
@@ -85,7 +102,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 currentStep++;
                 updateFormSteps();
             } else {
-                // Last step: submit the form
                 intakeForm.requestSubmit();
             }
         }
@@ -100,23 +116,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     intakeForm.addEventListener('submit', (e) => {
         e.preventDefault();
-        
         const formData = new FormData(intakeForm);
         const data = Object.fromEntries(formData.entries());
-        
-        // Handle file name specifically
         const fileInput = document.getElementById('file-upload');
         data.uploaded_file = fileInput.files[0] ? fileInput.files[0].name : 'No file uploaded';
-
-        // Save to local storage
         const inquiries = JSON.parse(localStorage.getItem('inquiries')) || [];
         inquiries.push(data);
         localStorage.setItem('inquiries', JSON.stringify(inquiries));
-
-        // Redirect
         window.location.href = 'thankyou.html';
     });
 
-    // Initial setup
     updateFormSteps();
 });
