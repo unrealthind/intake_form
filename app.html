@@ -16,17 +16,17 @@
         .glass-container { background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-radius: 1rem; border: 1px solid rgba(255, 255, 255, 0.2); box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37); display: none; }
         .glass-container.active { display: block; animation: fadeIn 0.7s; }
         .glass-input {
-            background: rgba(255, 255, 255, 0.15) !important;
-            border: 1px solid rgba(255, 255, 255, 0.3) !important;
-            color: #ffffff !important;
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: #ffffff;
             transition: border-color 0.2s, color 0.2s;
             padding-left: 0.75rem;
             padding-right: 0.75rem;
         }
-        .glass-input::placeholder { color: rgba(255, 255, 255, 0.7) !important; transition: color 0.2s; }
-        .glass-input:focus { box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.5) !important; outline: none !important; }
-        .glass-input.error { border-color: #ef4444 !important; }
-        .glass-input.error::placeholder { color: #ef4444 !important; font-weight: 600; }
+        .glass-input::placeholder { color: rgba(255, 255, 255, 0.7); transition: color 0.2s; }
+        .glass-input:focus { box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.5); outline: none; }
+        .glass-input.error { border-color: #ef4444; }
+        .glass-input.error::placeholder { color: #ef4444; font-weight: 600; }
         
         /* --- Custom Select Dropdown Styling --- */
         .custom-select-wrapper { position: relative; user-select: none; }
@@ -63,7 +63,6 @@
         .custom-option { display: block; padding: 0.75rem; color: white; cursor: pointer; transition: background-color 0.2s; }
         .custom-option:hover { background-color: rgba(255, 255, 255, 0.1); }
         .custom-option.selected { background-color: rgba(255, 255, 255, 0.2); font-weight: 500; }
-        /* Remove default blue highlight */
         .custom-option::selection { background: rgba(255, 255, 255, 0.2); }
         /* --- End Custom Select Styling --- */
 
@@ -100,7 +99,7 @@
         <div id="welcome-card" class="glass-container p-10 w-full max-w-lg my-8 text-center active">
             <h1 class="text-4xl font-bold text-white">Raavi Interactive Inc.</h1>
             <p class="mt-4 text-lg text-gray-300">Let's build something amazing together. Start by telling us a little about your project.</p>
-            <button id="start-btn" class="mt-8 w-full bg-white/90 font-bold py-3 px-8 rounded-lg transition-transform transform hover:scale-105">Start a Project Inquiry</button>
+            <button id="start-btn" class="mt-8 w-full bg-white/90 text-gray-800 font-bold py-3 px-8 rounded-lg transition-transform transform hover:scale-105">Start a Project Inquiry</button>
         </div>
 
         <!-- Form Card -->
@@ -277,7 +276,7 @@
                 <!-- Navigation Buttons -->
                 <div class="mt-8 flex justify-between">
                     <button type="button" id="prev-btn" class="bg-white/20 text-white font-bold py-2 px-6 rounded-md hover:bg-white/30 transition-colors">Previous</button>
-                    <button type="button" id="next-btn" class="bg-white/90 font-bold py-2 px-6 rounded-md transition-transform transform hover:scale-105">Next</button>
+                    <button type="button" id="next-btn" class="bg-white/90 text-gray-800 font-bold py-2 px-6 rounded-md transition-transform transform hover:scale-105">Next</button>
                 </div>
             </form>
         </div>
@@ -287,7 +286,7 @@
             <svg class="mx-auto h-16 w-16 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
             <h1 class="mt-4 text-3xl font-bold text-white">Thank You!</h1>
             <p class="mt-2 text-lg text-gray-300">Your inquiry has been received. We will get back to you shortly.</p>
-            <button id="restart-btn" class="mt-8 w-full bg-white/90 font-bold py-3 px-6 rounded-lg transition-colors">Submit Another Inquiry</button>
+            <button id="restart-btn" class="mt-8 w-full bg-white/90 text-gray-800 font-bold py-3 px-6 rounded-lg transition-colors">Submit Another Inquiry</button>
         </div>
     </div>
     
@@ -300,7 +299,18 @@
             script.src = `https://maps.googleapis.com/maps/api/js?key=${googleApiKey}&libraries=places&callback=initAutocomplete`;
             script.async = true;
             document.head.appendChild(script);
-        } else { console.error("Google API Key not found in env.js."); }
+        } else { 
+            console.error("Google API Key not found in env.js."); 
+            const mapStep = document.querySelector('.form-step:nth-child(2)');
+            if(mapStep) {
+                mapStep.innerHTML = `
+                    <div class="text-center text-red-400 p-4 bg-red-900/50 rounded-lg">
+                        <strong>Map functionality is disabled.</strong><br>
+                        Please ensure env.js contains your Google Maps API key.
+                    </div>
+                `;
+            }
+        }
     </script>
     <script src="app.js"></script>
 </body>

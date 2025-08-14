@@ -1,7 +1,9 @@
-// --- Google Maps Initialization (No changes) ---
+// --- Google Maps Initialization ---
 let map, marker, geocoder;
 async function initAutocomplete() {
     const addressInput = document.getElementById("project-address");
+    if (!addressInput) return; // Exit if map was disabled
+
     const edmonton = { lat: 53.5461, lng: -113.4938 };
     map = new google.maps.Map(document.getElementById("map"), {
         center: edmonton,
@@ -48,6 +50,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const startBtn = document.getElementById('start-btn');
     const restartBtn = document.getElementById('restart-btn');
     const themeSwitcherBtn = document.getElementById('theme-switcher');
+    const intakeForm = document.getElementById('intake-form');
+    const nextBtn = document.getElementById('next-btn');
+    const prevBtn = document.getElementById('prev-btn');
 
     // --- View Manager ---
     const showCard = (cardToShow) => {
@@ -57,30 +62,27 @@ document.addEventListener('DOMContentLoaded', () => {
 
     startBtn.addEventListener('click', () => showCard(formCard));
     restartBtn.addEventListener('click', () => {
-        document.getElementById('intake-form').reset();
-        currentStep = 0; // Reset form step
+        intakeForm.reset();
+        currentStep = 0;
         updateFormSteps();
-        handleFileUpload(); // Reset file upload UI
-        handleProjectTypeChange(); // Reset dynamic categories
-        resetCustomSelects(); // Reset custom dropdowns
+        handleFileUpload();
+        handleProjectTypeChange();
+        resetCustomSelects();
         showCard(welcomeCard);
     });
 
     // --- Theme Switcher Logic ---
     const themes = ['theme-rainbow', 'theme-dark-mono'];
     let currentTheme = localStorage.getItem('formTheme') || themes[0];
-    const nextBtn = document.getElementById('next-btn');
     
     const applyTheme = (theme) => {
         document.body.className = theme;
         localStorage.setItem('formTheme', theme);
-
-        // Update button text colors based on theme
         const buttonsToTheme = [startBtn, nextBtn, restartBtn];
         if (theme === 'theme-rainbow') {
-            buttonsToTheme.forEach(btn => btn.style.color = '#6d28d9'); // Purple text
+            buttonsToTheme.forEach(btn => btn.style.color = '#6d28d9');
         } else {
-            buttonsToTheme.forEach(btn => btn.style.color = '#374151'); // Dark Grey text
+            buttonsToTheme.forEach(btn => btn.style.color = '#374151');
         }
     };
     
@@ -89,26 +91,21 @@ document.addEventListener('DOMContentLoaded', () => {
         currentTheme = themes[nextIndex];
         applyTheme(currentTheme);
     });
-    applyTheme(currentTheme); // Apply theme on initial load
+    applyTheme(currentTheme);
 
     // --- Multi-Step Form Logic ---
-    const intakeForm = document.getElementById('intake-form');
-    const prevBtn = document.getElementById('prev-btn');
     const formSteps = [...document.querySelectorAll('.form-step')];
     const progressBar = document.getElementById('progress-bar');
     const formTitle = document.getElementById('form-title');
     let currentStep = 0;
     const titles = ["Your Information", "Project Location", "Services & Plans", "Final Details"];
 
-    const updateFormSteps = (step = currentStep) => {
-        currentStep = step;
+    const updateFormSteps = () => {
         formTitle.textContent = titles[currentStep];
         progressBar.style.width = `${((currentStep + 1) / formSteps.length) * 100}%`;
         formSteps.forEach((s, index) => s.classList.toggle('active', index === currentStep));
         prevBtn.style.display = currentStep === 0 ? 'none' : 'inline-block';
         nextBtn.textContent = currentStep === formSteps.length - 1 ? 'Submit' : 'Next';
-        document.querySelectorAll('.glass-input, .custom-select').forEach(el => clearError(el));
-        handleProjectTypeChange();
     };
 
     // --- Validation Logic ---
@@ -138,7 +135,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const validateStep = (stepIndex) => {
         let isValid = true;
-        formSteps[stepIndex].querySelectorAll('.glass-input, .custom-select').forEach(el => clearError(el));
+        const currentStepFields = formSteps[stepIndex].querySelectorAll('[required], .custom-select');
+        currentStepFields.forEach(el => clearError(el));
 
         if (stepIndex === 0) {
             const name = document.getElementById('client-name');
@@ -165,27 +163,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (stepIndex === 2) {
             const selectedType = document.querySelector('input[name="project-type"]:checked').value;
+            let categoryInput;
             if (selectedType === 'Commercial') {
-                const commercialCategory = document.querySelector('input[name="commercial-category"]');
-                if (!commercialCategory.value) {
-                    showError(commercialCategory.closest('.custom-select-wrapper').querySelector('.custom-select'), 'Please select a category.');
-                    isValid = false;
-                }
+                categoryInput = document.querySelector('input[name="commercial-category"]');
             } else if (selectedType === 'Residential') {
-                const residentialCategory = document.querySelector('input[name="residential-category"]');
-                if (!residentialCategory.value) {
-                    showError(residentialCategory.closest('.custom-select-wrapper').querySelector('.custom-select'), 'Please select a category.');
-                    isValid = false;
-                }
+                categoryInput = document.querySelector('input[name="residential-category"]');
             } else if (selectedType === 'Rezoning') {
-                const rezoningCategory = document.querySelector('input[name="rezoning-category"]');
-                if (!rezoningCategory.value) {
-                    showError(rezoningCategory.closest('.custom-select-wrapper').querySelector('.custom-select'), 'Please select a category.');
-                    isValid = false;
-                }
+                categoryInput = document.querySelector('input[name="rezoning-category"]');
+            }
+
+            if (categoryInput && !categoryInput.value) {
+                const customSelectElement = categoryInput.closest('.custom-select-wrapper').querySelector('.custom-select');
+                showError(customSelectElement, 'Please select a category.');
+                isValid = false;
             }
         }
-
+        // No validation needed for step 3 as no fields are required.
         return isValid;
     };
 
@@ -193,20 +186,17 @@ document.addEventListener('DOMContentLoaded', () => {
         input.addEventListener('input', () => clearError(input));
     });
 
+    // --- THIS IS THE PRIMARY FIX ---
     nextBtn.addEventListener('click', () => {
-        if (currentStep === formSteps.length - 1) {
-            let firstInvalidStep = -1;
-            for (let i = 0; i < formSteps.length; i++) {
-                if (!validateStep(i) && firstInvalidStep === -1) {
-                    firstInvalidStep = i;
-                }
-            }
-
-            if (firstInvalidStep !== -1) {
-                updateFormSteps(firstInvalidStep);
-                validateStep(firstInvalidStep); // Re-run to show errors
+        // First, validate the step the user is currently on.
+        if (validateStep(currentStep)) {
+            // If the step is valid, check if it's the last one.
+            if (currentStep < formSteps.length - 1) {
+                // If it's NOT the last step, simply move to the next one.
+                currentStep++;
+                updateFormSteps();
             } else {
-                // All steps are valid, submit the form data
+                // If it IS the last step and it's valid, submit the form.
                 const formData = new FormData(intakeForm);
                 const data = Object.fromEntries(formData.entries());
                 
@@ -217,18 +207,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 const inquiries = JSON.parse(localStorage.getItem('inquiries')) || [];
                 inquiries.push(data);
                 localStorage.setItem('inquiries', JSON.stringify(inquiries));
+                
                 showCard(thankyouCard);
             }
-        } else {
-            if (validateStep(currentStep)) {
-                updateFormSteps(currentStep + 1);
-            }
         }
+        // If validateStep(currentStep) returns false, errors will be shown and nothing else will happen.
     });
 
     prevBtn.addEventListener('click', () => {
         if (currentStep > 0) {
-            updateFormSteps(currentStep - 1);
+            currentStep--;
+            updateFormSteps();
         }
     });
     
@@ -236,7 +225,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const fileUpload = document.getElementById('file-upload');
     const fileListContainer = document.getElementById('file-list-container');
     const fileSizeError = document.getElementById('file-size-error');
-    const MAX_SIZE = 100 * 1024 * 1024; // 100 MB in bytes
+    const MAX_SIZE = 100 * 1024 * 1024;
 
     const handleFileUpload = () => {
         const files = [...fileUpload.files];
@@ -320,7 +309,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 displaySpan.innerHTML = option.innerHTML;
                 options.forEach(opt => opt.classList.remove('selected'));
                 option.classList.add('selected');
-                clearError(select); // Clear error on selection
+                clearError(select);
             });
         });
     });
@@ -361,10 +350,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const dateInput = document.getElementById('lease-possession-date');
 
     datePickerIcon.addEventListener('click', () => {
-        dateInput.showPicker();
+        try {
+            dateInput.showPicker();
+        } catch (e) {
+            console.error("Browser does not support showPicker().");
+        }
     });
     
     // Initial setup
     updateFormSteps(); 
-    handleProjectTypeChange(); // Set initial category visibility
+    handleProjectTypeChange();
 });
