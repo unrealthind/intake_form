@@ -69,80 +69,167 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Theme Switcher Logic ---
     const themes = ['theme-rainbow', 'theme-dark-mono'];
     let currentTheme = localStorage.getItem('formTheme') || themes[0];
+    const nextBtn = document.getElementById('next-btn');
+    
     const applyTheme = (theme) => {
         document.body.className = theme;
         localStorage.setItem('formTheme', theme);
+
+        // Update button text colors based on theme
+        const buttonsToTheme = [startBtn, nextBtn, restartBtn];
+        if (theme === 'theme-rainbow') {
+            buttonsToTheme.forEach(btn => btn.style.color = '#6d28d9'); // Purple text
+        } else {
+            buttonsToTheme.forEach(btn => btn.style.color = '#374151'); // Dark Grey text
+        }
     };
+    
     themeSwitcherBtn.addEventListener('click', () => {
         const nextIndex = (themes.indexOf(currentTheme) + 1) % themes.length;
         currentTheme = themes[nextIndex];
         applyTheme(currentTheme);
     });
-    applyTheme(currentTheme);
+    applyTheme(currentTheme); // Apply theme on initial load
 
     // --- Multi-Step Form Logic ---
     const intakeForm = document.getElementById('intake-form');
     const prevBtn = document.getElementById('prev-btn');
-    const nextBtn = document.getElementById('next-btn');
     const formSteps = [...document.querySelectorAll('.form-step')];
     const progressBar = document.getElementById('progress-bar');
     const formTitle = document.getElementById('form-title');
     let currentStep = 0;
     const titles = ["Your Information", "Project Location", "Services & Plans", "Final Details"];
 
-    const updateFormSteps = () => {
+    const updateFormSteps = (step = currentStep) => {
+        currentStep = step;
         formTitle.textContent = titles[currentStep];
         progressBar.style.width = `${((currentStep + 1) / formSteps.length) * 100}%`;
-        formSteps.forEach((step, index) => step.classList.toggle('active', index === currentStep));
+        formSteps.forEach((s, index) => s.classList.toggle('active', index === currentStep));
         prevBtn.style.display = currentStep === 0 ? 'none' : 'inline-block';
         nextBtn.textContent = currentStep === formSteps.length - 1 ? 'Submit' : 'Next';
+        document.querySelectorAll('.glass-input, .custom-select').forEach(el => clearError(el));
+        handleProjectTypeChange();
     };
 
-    const validateStep = () => {
-        const inputs = [...formSteps[currentStep].querySelectorAll('input[required]')];
+    // --- Validation Logic ---
+    const showError = (element, message) => {
+        element.classList.add('error');
+        if (element.tagName === 'INPUT') {
+            element.placeholder = message;
+        }
+        const wrapper = element.closest('.form-group, .custom-select-wrapper');
+        const inputElement = wrapper.querySelector('.custom-select, .glass-input');
+        if (inputElement) {
+            inputElement.style.borderColor = 'rgba(239, 68, 68, 0.7)';
+        }
+    };
+
+    const clearError = (element) => {
+        element.classList.remove('error');
+        if (element.tagName === 'INPUT') {
+            element.placeholder = element.dataset.placeholder || '';
+        }
+         const wrapper = element.closest('.form-group, .custom-select-wrapper');
+        const inputElement = wrapper.querySelector('.custom-select, .glass-input');
+        if (inputElement) {
+            inputElement.style.borderColor = '';
+        }
+    };
+
+    const validateStep = (stepIndex) => {
         let isValid = true;
-        inputs.forEach(input => {
-            if (!input.value.trim()) {
-                input.style.borderColor = 'rgba(239, 68, 68, 0.7)';
-                isValid = false;
-            } else {
-                input.style.borderColor = '';
+        formSteps[stepIndex].querySelectorAll('.glass-input, .custom-select').forEach(el => clearError(el));
+
+        if (stepIndex === 0) {
+            const name = document.getElementById('client-name');
+            const company = document.getElementById('client-company');
+            const phone = document.getElementById('phone-number');
+            const email = document.getElementById('email-address');
+
+            if (!name.value.trim()) { showError(name, 'REQUIRED'); isValid = false; }
+            if (!company.value.trim()) { showError(company, 'REQUIRED'); isValid = false; }
+            
+            const phoneRegex = /^\(?([0-9]{3})\)?[-. ]?([0-9]{3})[-. ]?([0-9]{4})$/;
+            if (!phone.value.trim()) { showError(phone, 'REQUIRED'); isValid = false; }
+            else if (!phone.value.match(phoneRegex)) { showError(phone, 'INVALID FORMAT'); isValid = false; }
+
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!email.value.trim()) { showError(email, 'REQUIRED'); isValid = false; }
+            else if (!email.value.match(emailRegex)) { showError(email, 'INVALID FORMAT'); isValid = false; }
+        }
+
+        if (stepIndex === 1) {
+            const address = document.getElementById('project-address');
+            if (!address.value.trim()) { showError(address, 'REQUIRED'); isValid = false; }
+        }
+
+        if (stepIndex === 2) {
+            const selectedType = document.querySelector('input[name="project-type"]:checked').value;
+            if (selectedType === 'Commercial') {
+                const commercialCategory = document.querySelector('input[name="commercial-category"]');
+                if (!commercialCategory.value) {
+                    showError(commercialCategory.closest('.custom-select-wrapper').querySelector('.custom-select'), 'Please select a category.');
+                    isValid = false;
+                }
+            } else if (selectedType === 'Residential') {
+                const residentialCategory = document.querySelector('input[name="residential-category"]');
+                if (!residentialCategory.value) {
+                    showError(residentialCategory.closest('.custom-select-wrapper').querySelector('.custom-select'), 'Please select a category.');
+                    isValid = false;
+                }
+            } else if (selectedType === 'Rezoning') {
+                const rezoningCategory = document.querySelector('input[name="rezoning-category"]');
+                if (!rezoningCategory.value) {
+                    showError(rezoningCategory.closest('.custom-select-wrapper').querySelector('.custom-select'), 'Please select a category.');
+                    isValid = false;
+                }
             }
-        });
+        }
+
         return isValid;
     };
 
+    document.querySelectorAll('.glass-input[required]').forEach(input => {
+        input.addEventListener('input', () => clearError(input));
+    });
+
     nextBtn.addEventListener('click', () => {
-        if (validateStep()) {
-            if (currentStep < formSteps.length - 1) {
-                currentStep++;
-                updateFormSteps();
+        if (currentStep === formSteps.length - 1) {
+            let firstInvalidStep = -1;
+            for (let i = 0; i < formSteps.length; i++) {
+                if (!validateStep(i) && firstInvalidStep === -1) {
+                    firstInvalidStep = i;
+                }
+            }
+
+            if (firstInvalidStep !== -1) {
+                updateFormSteps(firstInvalidStep);
+                validateStep(firstInvalidStep); // Re-run to show errors
             } else {
-                intakeForm.requestSubmit();
+                // All steps are valid, submit the form data
+                const formData = new FormData(intakeForm);
+                const data = Object.fromEntries(formData.entries());
+                
+                const fileInput = document.getElementById('file-upload');
+                const fileNames = [...fileInput.files].map(file => file.name);
+                data.uploaded_files = fileNames.length > 0 ? fileNames : 'No files uploaded';
+                
+                const inquiries = JSON.parse(localStorage.getItem('inquiries')) || [];
+                inquiries.push(data);
+                localStorage.setItem('inquiries', JSON.stringify(inquiries));
+                showCard(thankyouCard);
+            }
+        } else {
+            if (validateStep(currentStep)) {
+                updateFormSteps(currentStep + 1);
             }
         }
     });
 
     prevBtn.addEventListener('click', () => {
         if (currentStep > 0) {
-            currentStep--;
-            updateFormSteps();
+            updateFormSteps(currentStep - 1);
         }
-    });
-
-    intakeForm.addEventListener('submit', (e) => {
-        e.preventDefault();
-        const formData = new FormData(intakeForm);
-        const data = Object.fromEntries(formData.entries());
-        
-        const fileInput = document.getElementById('file-upload');
-        const fileNames = [...fileInput.files].map(file => file.name);
-        data.uploaded_files = fileNames.length > 0 ? fileNames : 'No files uploaded';
-        
-        const inquiries = JSON.parse(localStorage.getItem('inquiries')) || [];
-        inquiries.push(data);
-        localStorage.setItem('inquiries', JSON.stringify(inquiries));
-        showCard(thankyouCard);
     });
     
     // --- File Upload Logic ---
@@ -189,19 +276,21 @@ document.addEventListener('DOMContentLoaded', () => {
     const projectTypeRadios = document.querySelectorAll('input[name="project-type"]');
     const commercialCategories = document.getElementById('commercial-categories');
     const residentialCategories = document.getElementById('residential-categories');
+    const rezoningCategories = document.getElementById('rezoning-categories');
 
     const handleProjectTypeChange = () => {
         const selectedType = document.querySelector('input[name="project-type"]:checked').value;
         
+        commercialCategories.classList.add('hidden');
+        residentialCategories.classList.add('hidden');
+        rezoningCategories.classList.add('hidden');
+
         if (selectedType === 'Commercial') {
             commercialCategories.classList.remove('hidden');
-            residentialCategories.classList.add('hidden');
         } else if (selectedType === 'Residential') {
-            commercialCategories.classList.add('hidden');
             residentialCategories.classList.remove('hidden');
-        } else { // Rezoning
-            commercialCategories.classList.add('hidden');
-            residentialCategories.classList.add('hidden');
+        } else if (selectedType === 'Rezoning') {
+            rezoningCategories.classList.remove('hidden');
         }
     };
 
@@ -227,13 +316,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
         options.forEach(option => {
             option.addEventListener('click', () => {
-                // Update hidden input and display
                 hiddenInput.value = option.dataset.value;
-                displaySpan.textContent = option.textContent;
-                
-                // Update selected class
+                displaySpan.innerHTML = option.innerHTML;
                 options.forEach(opt => opt.classList.remove('selected'));
                 option.classList.add('selected');
+                clearError(select); // Clear error on selection
             });
         });
     });
@@ -261,14 +348,21 @@ document.addEventListener('DOMContentLoaded', () => {
             
             options.forEach(opt => opt.classList.remove('selected'));
             
-            // For sq ft/m, reset to default
             if (hiddenInput.name === 'area-unit') {
                 hiddenInput.value = 'sq ft';
-                displaySpan.textContent = 'sq ft';
+                displaySpan.innerHTML = 'ft<sup>2</sup>';
                 wrapper.querySelector('.custom-option[data-value="sq ft"]').classList.add('selected');
             }
         });
     };
+    
+    // --- Date Picker Icon Logic ---
+    const datePickerIcon = document.getElementById('date-picker-icon');
+    const dateInput = document.getElementById('lease-possession-date');
+
+    datePickerIcon.addEventListener('click', () => {
+        dateInput.showPicker();
+    });
     
     // Initial setup
     updateFormSteps(); 

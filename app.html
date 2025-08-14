@@ -15,13 +15,22 @@
         .main-container { height: 100vh; overflow-y: auto; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding: 2rem; }
         .glass-container { background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-radius: 1rem; border: 1px solid rgba(255, 255, 255, 0.2); box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37); display: none; }
         .glass-container.active { display: block; animation: fadeIn 0.7s; }
-        .glass-input { background: rgba(255, 255, 255, 0.15) !important; border: 1px solid rgba(255, 255, 255, 0.3) !important; color: #ffffff !important; }
-        .glass-input::placeholder { color: rgba(255, 255, 255, 0.7) !important; }
+        .glass-input {
+            background: rgba(255, 255, 255, 0.15) !important;
+            border: 1px solid rgba(255, 255, 255, 0.3) !important;
+            color: #ffffff !important;
+            transition: border-color 0.2s, color 0.2s;
+            padding-left: 0.75rem;
+            padding-right: 0.75rem;
+        }
+        .glass-input::placeholder { color: rgba(255, 255, 255, 0.7) !important; transition: color 0.2s; }
         .glass-input:focus { box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.5) !important; outline: none !important; }
+        .glass-input.error { border-color: #ef4444 !important; }
+        .glass-input.error::placeholder { color: #ef4444 !important; font-weight: 600; }
         
         /* --- Custom Select Dropdown Styling --- */
         .custom-select-wrapper { position: relative; user-select: none; }
-        .custom-select { position: relative; cursor: pointer; height: 2.5rem; /* h-10 */ }
+        .custom-select { position: relative; cursor: pointer; height: 2.5rem; /* h-10 */ transition: border-color 0.2s; }
         .custom-select-trigger { display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0.75rem; height: 100%; }
         .arrow {
             position: relative;
@@ -91,7 +100,7 @@
         <div id="welcome-card" class="glass-container p-10 w-full max-w-lg my-8 text-center active">
             <h1 class="text-4xl font-bold text-white">Raavi Interactive Inc.</h1>
             <p class="mt-4 text-lg text-gray-300">Let's build something amazing together. Start by telling us a little about your project.</p>
-            <button id="start-btn" class="mt-8 w-full bg-white/90 text-indigo-700 font-bold py-3 px-8 rounded-lg hover:bg-white transition-transform transform hover:scale-105">Start a Project Inquiry</button>
+            <button id="start-btn" class="mt-8 w-full bg-white/90 font-bold py-3 px-8 rounded-lg transition-transform transform hover:scale-105">Start a Project Inquiry</button>
         </div>
 
         <!-- Form Card -->
@@ -102,40 +111,40 @@
                     <div id="progress-bar" class="progress-bar-fill h-2.5 rounded-full" style="width: 25%"></div>
                 </div>
             </div>
-            <form id="intake-form">
+            <form id="intake-form" novalidate>
                 <!-- Step 1: Your Information -->
                 <div class="form-step active space-y-6">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <label for="client-name" class="block text-sm font-medium text-gray-200">Your Name</label>
+                        <div class="form-group">
+                            <label for="client-name" class="block text-sm font-medium text-gray-200">Your Name <span class="text-red-400">*</span></label>
                             <input type="text" id="client-name" name="client-name" class="glass-input mt-1 block w-full rounded-md shadow-sm h-10" required>
                         </div>
-                        <div>
-                            <label for="client-company" class="block text-sm font-medium text-gray-200">Company Name</label>
-                            <input type="text" id="client-company" name="client-company" class="glass-input mt-1 block w-full rounded-md shadow-sm h-10">
+                        <div class="form-group">
+                            <label for="client-company" class="block text-sm font-medium text-gray-200">Company Name <span class="text-red-400">*</span></label>
+                            <input type="text" id="client-company" name="client-company" class="glass-input mt-1 block w-full rounded-md shadow-sm h-10" required>
                         </div>
-                        <div>
-                            <label for="phone-number" class="block text-sm font-medium text-gray-200">Phone Number</label>
+                        <div class="form-group">
+                            <label for="phone-number" class="block text-sm font-medium text-gray-200">Phone Number <span class="text-red-400">*</span></label>
                             <input type="tel" id="phone-number" name="phone-number" class="glass-input mt-1 block w-full rounded-md shadow-sm h-10" required>
                         </div>
-                        <div>
-                            <label for="email-address" class="block text-sm font-medium text-gray-200">Email Address</label>
+                        <div class="form-group">
+                            <label for="email-address" class="block text-sm font-medium text-gray-200">Email Address <span class="text-red-400">*</span></label>
                             <input type="email" id="email-address" name="email-address" class="glass-input mt-1 block w-full rounded-md shadow-sm h-10" required>
                         </div>
                     </div>
                 </div>
                 <!-- Step 2: Project Location -->
                 <div class="form-step">
-                    <div>
-                        <label for="project-address" class="block text-sm font-medium text-gray-200">Project Address</label>
-                        <input type="text" id="project-address" name="project-address" class="glass-input mt-1 block w-full rounded-md shadow-sm h-10" placeholder="Search or drop a pin on the map" required>
+                    <div class="form-group">
+                        <label for="project-address" class="block text-sm font-medium text-gray-200">Project Address <span class="text-red-400">*</span></label>
+                        <input type="text" id="project-address" name="project-address" class="glass-input mt-1 block w-full rounded-md shadow-sm h-10" placeholder="Search or drop a pin on the map" data-placeholder="Search or drop a pin on the map" required>
                         <div id="map" class="mt-4"></div>
                     </div>
                 </div>
                 <!-- Step 3: Services & Plans -->
                 <div class="form-step space-y-6">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-200 mb-2">Project Type</label>
+                    <div class="form-group">
+                        <label class="block text-sm font-medium text-gray-200 mb-2">Project Type <span class="text-red-400">*</span></label>
                         <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                             <div class="radio-card">
                                 <input type="radio" id="project-type-residential" name="project-type" value="Residential" checked>
@@ -153,8 +162,8 @@
                     </div>
                     <!-- Dynamic Sub-Categories -->
                     <div id="project-sub-category-container">
-                        <div id="commercial-categories" class="hidden">
-                            <label for="commercial-category-select" class="block text-sm font-medium text-gray-200">Commercial Category</label>
+                        <div id="commercial-categories" class="hidden form-group">
+                            <label for="commercial-category-select" class="block text-sm font-medium text-gray-200">Commercial Category <span class="text-red-400">*</span></label>
                             <div class="custom-select-wrapper mt-1">
                                 <div class="custom-select glass-input rounded-md shadow-sm">
                                     <div class="custom-select-trigger">
@@ -174,8 +183,8 @@
                                 <input type="hidden" name="commercial-category" value="">
                             </div>
                         </div>
-                        <div id="residential-categories" class="hidden">
-                            <label for="residential-category-select" class="block text-sm font-medium text-gray-200">Residential Category</label>
+                        <div id="residential-categories" class="form-group">
+                            <label for="residential-category-select" class="block text-sm font-medium text-gray-200">Residential Category <span class="text-red-400">*</span></label>
                             <div class="custom-select-wrapper mt-1">
                                 <div class="custom-select glass-input rounded-md shadow-sm">
                                     <div class="custom-select-trigger">
@@ -194,9 +203,26 @@
                                 <input type="hidden" name="residential-category" value="">
                             </div>
                         </div>
+                        <div id="rezoning-categories" class="hidden form-group">
+                            <label for="rezoning-category-select" class="block text-sm font-medium text-gray-200">Rezoning Category <span class="text-red-400">*</span></label>
+                            <div class="custom-select-wrapper mt-1">
+                                <div class="custom-select glass-input rounded-md shadow-sm">
+                                    <div class="custom-select-trigger">
+                                        <span>— Please Select —</span>
+                                        <div class="arrow"></div>
+                                    </div>
+                                    <div class="custom-options">
+                                        <span class="custom-option" data-value="Residential to Commercial">Residential to Commercial</span>
+                                        <span class="custom-option" data-value="Commercial Rezoning">Commercial Rezoning</span>
+                                        <span class="custom-option" data-value="Other">Other</span>
+                                    </div>
+                                </div>
+                                <input type="hidden" name="rezoning-category" value="">
+                            </div>
+                        </div>
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-200 mb-2">Services Required</label>
+                        <label class="block text-sm font-medium text-gray-200 mb-2">Services Required <span class="text-red-400">*</span></label>
                         <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
                             <div class="radio-card"><input type="radio" id="service-everything" name="services-required" value="Everything" checked><label for="service-everything">Everything</label></div>
                             <div class="radio-card"><input type="radio" id="service-bp" name="services-required" value="BP (Building Permit)"><label for="service-bp">BP</label></div>
@@ -206,33 +232,30 @@
                             <div class="radio-card"><input type="radio" id="service-struct" name="services-required" value="Structural"><label for="service-struct">Structural</label></div>
                         </div>
                     </div>
-                    <div>
-                        <label for="file-upload" class="block text-sm font-medium text-gray-200">Upload Plans or Documents (Max 100 MB)</label>
-                        <input type="file" id="file-upload" name="file-upload" class="mt-1 block w-full text-sm text-gray-300 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-white/10 file:text-white hover:file:bg-white/20">
-                        <div id="file-list-container" class="mt-2 text-sm text-gray-300"></div>
-                        <p id="file-size-error" class="text-red-400 text-sm mt-1" style="display: none;">Total file size exceeds 100 MB limit.</p>
-                    </div>
                 </div>
                 <!-- Step 4: Final Details -->
-                <div class="form-step">
+                <div class="form-step space-y-6">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
+                        <div class="relative">
                             <label for="lease-possession-date" class="block text-sm font-medium text-gray-200">Lease Possession Date</label>
-                            <input type="date" id="lease-possession-date" name="lease-possession-date" class="glass-input mt-1 block w-full rounded-md shadow-sm h-10">
+                            <input type="date" id="lease-possession-date" name="lease-possession-date" class="glass-input mt-1 block w-full rounded-md shadow-sm h-10 pr-10">
+                            <div id="date-picker-icon" class="absolute inset-y-0 right-0 top-6 flex items-center pr-3 cursor-pointer">
+                                <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                            </div>
                         </div>
                         <div>
                             <label for="total-project-area" class="block text-sm font-medium text-gray-200">Total Project Area (all floors)</label>
                             <div class="flex items-center mt-1">
                                 <input type="number" id="total-project-area" name="total-project-area" class="glass-input block w-full rounded-md shadow-sm rounded-r-none h-10">
-                                <div class="custom-select-wrapper w-24">
+                                <div class="custom-select-wrapper w-28">
                                     <div class="custom-select glass-input rounded-l-none border-l-0">
                                         <div class="custom-select-trigger">
-                                            <span>sq ft</span>
+                                            <span>ft<sup>2</sup></span>
                                             <div class="arrow"></div>
                                         </div>
                                         <div class="custom-options">
-                                            <span class="custom-option selected" data-value="sq ft">sq ft</span>
-                                            <span class="custom-option" data-value="sq m">sq m</span>
+                                            <span class="custom-option selected" data-value="sq ft">ft<sup>2</sup></span>
+                                            <span class="custom-option" data-value="sq m">m<sup>2</sup></span>
                                         </div>
                                     </div>
                                     <input type="hidden" name="area-unit" value="sq ft">
@@ -240,15 +263,21 @@
                             </div>
                         </div>
                     </div>
-                    <div class="mt-6">
+                    <div>
                         <label for="other-info" class="block text-sm font-medium text-gray-200">Other Info or Questions</label>
                         <textarea id="other-info" name="other-info" rows="5" class="glass-input mt-1 block w-full rounded-md shadow-sm"></textarea>
+                    </div>
+                    <div>
+                        <label for="file-upload" class="block text-sm font-medium text-gray-200">Upload Plans or Documents (Max 100 MB)</label>
+                        <input type="file" id="file-upload" name="file-upload" class="mt-1 block w-full text-sm text-gray-300 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-white/10 file:text-white hover:file:bg-white/20" multiple>
+                        <div id="file-list-container" class="mt-2 text-sm text-gray-300"></div>
+                        <p id="file-size-error" class="text-red-400 text-sm mt-1" style="display: none;">Total file size exceeds 100 MB limit.</p>
                     </div>
                 </div>
                 <!-- Navigation Buttons -->
                 <div class="mt-8 flex justify-between">
                     <button type="button" id="prev-btn" class="bg-white/20 text-white font-bold py-2 px-6 rounded-md hover:bg-white/30 transition-colors">Previous</button>
-                    <button type="button" id="next-btn" class="bg-white/90 text-indigo-700 font-bold py-2 px-6 rounded-md hover:bg-white transition-transform transform hover:scale-105">Next</button>
+                    <button type="button" id="next-btn" class="bg-white/90 font-bold py-2 px-6 rounded-md transition-transform transform hover:scale-105">Next</button>
                 </div>
             </form>
         </div>
@@ -258,7 +287,7 @@
             <svg class="mx-auto h-16 w-16 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
             <h1 class="mt-4 text-3xl font-bold text-white">Thank You!</h1>
             <p class="mt-2 text-lg text-gray-300">Your inquiry has been received. We will get back to you shortly.</p>
-            <button id="restart-btn" class="mt-8 w-full bg-white/90 text-indigo-700 font-bold py-3 px-6 rounded-lg hover:bg-white transition-colors">Submit Another Inquiry</button>
+            <button id="restart-btn" class="mt-8 w-full bg-white/90 font-bold py-3 px-6 rounded-lg transition-colors">Submit Another Inquiry</button>
         </div>
     </div>
     
