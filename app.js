@@ -48,7 +48,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const progressBar = document.getElementById('progress-bar');
     const formTitle = document.getElementById('form-title');
     let currentStep = 0;
-    const titles = ["Client Information", "Project Location", "Services & Plans", "Final Details"];
+    const titles = ["Your Information", "Project Location", "Services & Plans", "Final Details"];
 
     const updateFormSteps = () => {
         formTitle.textContent = titles[currentStep];
