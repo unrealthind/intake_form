@@ -293,6 +293,7 @@
     <!-- Scripts -->
     <script src="env.js"></script>
     <script>
+        // This remains the same, but we will defer the other scripts
         const googleApiKey = window.APP_CONFIG?.googleApiKey;
         if (googleApiKey) {
             const script = document.createElement('script');
@@ -301,17 +302,12 @@
             document.head.appendChild(script);
         } else { 
             console.error("Google API Key not found in env.js."); 
-            const mapStep = document.querySelector('.form-step:nth-child(2)');
-            if(mapStep) {
-                mapStep.innerHTML = `
-                    <div class="text-center text-red-400 p-4 bg-red-900/50 rounded-lg">
-                        <strong>Map functionality is disabled.</strong><br>
-                        Please ensure env.js contains your Google Maps API key.
-                    </div>
-                `;
-            }
         }
     </script>
-    <script src="app.js"></script>
+    <!-- ADDED SUPABASE SCRIPTS -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-client.js" defer></script>
+    <!-- YOUR APP SCRIPT -->
+    <script src="app.js" defer></script>
 </body>
 </html>
